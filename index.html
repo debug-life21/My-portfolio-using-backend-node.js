@@ -15,10 +15,28 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet" />
 
+
+  <!-- Link to CSS file -->
   <link rel="stylesheet" href="port.css" />
 </head>
 
 <body>
+  <div id="welcome-message" style="text-align:center;margin:2em 0;font-size:1.3em;color:#2d3748;"></div>
+</head>
+
+  <!-- Main JS file -->
+  <script src="port.js" defer></script>
+  <script>
+    // Fetch welcome message from backend
+    fetch('/api/welcome')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('welcome-message').textContent = data.message;
+      })
+      .catch(() => {
+        document.getElementById('welcome-message').textContent = 'Welcome to my portfolio!';
+      });
+  </script>
   <a class="skip-link" href="#top">Skip to content</a>
   <header class="site-header">
     <nav class="nav" aria-label="Primary">
@@ -90,6 +108,8 @@
       </div>
       <div class="hero-bg" aria-hidden="true"></div>
     </section>
+
+
 
     <section id="services" class="section">
       <div class="container">
@@ -309,20 +329,20 @@
         </div>
 
         <div class="contact-grid">
-          <form id="contactForm" class="contact-card reveal" action="#" method="post">
+          <form id="contactForm" class="contact-card reveal" >
             <label>
               Full name
-              <input type="text" name="name" autocomplete="name" placeholder="Your name" required />
+              <input type="text" name="name" id="full-name" autocomplete="name" placeholder="Your name" required />
             </label>
 
             <label>
               Email
-              <input type="email" name="email" autocomplete="email" placeholder="you@example.com" required />
+              <input type="email" name="email" id="email-address" autocomplete="email" placeholder="you@example.com" required />
             </label>
 
             <label>
               Message
-              <textarea name="message" rows="5" placeholder="Share a short message..." required></textarea>
+              <textarea name="message" id="user-message" cols="30" rows="5" placeholder="Share a short message..." required></textarea>
             </label>
 
             <button class="button primary" type="submit">Send message</button>
@@ -358,5 +378,6 @@
   <button id="backToTop" class="back-to-top" type="button" aria-label="Back to top">↑</button>
 
   <script src="port.js"></script>
+
 </body>
 </html>

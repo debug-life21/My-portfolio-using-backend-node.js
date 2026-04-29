@@ -114,22 +114,66 @@ if (sections.length) {
   sections.forEach((s) => spy.observe(s));
 }
 
-// Contact form: open default email client (no backend needed)
-const contactForm = $("#contactForm");
-if (contactForm) {
-  contactForm.addEventListener("submit", (e) => {
-    e.preventDefault();
+// Contact form submission
+const contactForm = document.getElementById('contactForm');
 
-    const fd = new FormData(contactForm);
-    const name = String(fd.get("name") || "").trim();
-    const email = String(fd.get("email") || "").trim();
-    const message = String(fd.get("message") || "").trim();
+contactForm.addEventListener('submit', async (event) => {
+    event.preventDefault(); // This stops the "email app" from opening
 
-    const subject = encodeURIComponent(`Portfolio message from ${name || "Someone"}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}\n`
-    );
+    const formData = {
+        name: document.getElementById('full-name').value,
+        email: document.getElementById('email-address').value,
+        message: document.getElementById('user-message').value
+    };
 
-    window.location.href = `mailto:debuglife1221@gmail.com?subject=${subject}&body=${body}`;
-  });
+    try {
+        const response = await fetch('http://localhost:5000/api/contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert("Success! Your message was saved to the database.");
+            contactForm.reset(); // Clears the form
+        } else {
+            alert("Server error: " + result.error);
+        }
+    } catch (error) {
+        console.error("Connection failed:", error);
+        alert("Could not connect to the backend server. Is it running?");
+    }
+});
+
+//backend  node.js express mysql2 cors
+
+async function loadProjects() {
+    const response = await fetch('http://localhost:5000/api/projects');
+    const data = await response.json();
+    console.log("Projects from database:", data);
+    // Render projects in the Projects section
+    const projectsGrid = document.querySelector('.projects-grid');
+    if (projectsGrid && Array.isArray(data)) {
+        projectsGrid.innerHTML = data.map((project, idx) => `
+          <article class="project${idx === 0 ? ' large' : idx === 1 ? ' wide' : ''} reveal" data-delay="${idx * 100}">
+            <div class="thumb"></div>
+            <div class="project-body">
+              <div class="project-num">${String(idx + 1).padStart(2, '0')}</div>
+              <div class="project-tags">
+                ${project.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+              </div>
+              <h3>${project.title}</h3>
+              <p>${project.description}</p>
+              <div class="project-links">
+                <a class="link" href="${project.link}" target="_blank">Live Visit</a>
+              </div>
+            </div>
+          </article>
+        `).join('');
+    }
 }
+
