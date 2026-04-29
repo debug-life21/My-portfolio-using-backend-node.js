@@ -25,25 +25,7 @@ app.get('/welcome', (req, res) => {
 
 // Welcome API endpoint for portfolio display
 app.get('/api/welcome', (req, res) => {
-    res.json({ message: "Welcome to my portfolio backend!" });
-});
-
-
-// MySQL Connection
-const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",      // Default XAMPP user
-    password: "",      // Default XAMPP password is empty
-    database: "portfolio-db" // Double check this matches your phpMyAdmin!
-});
-
-db.connect((err) => {
-    if (err) {
-        console.error("❌ Could not connect to MySQL:", err.message);
-    } else {
-        console.log("Connected to MySQL Database.");
-    }
-});
+    res.json({ message: "Welcome to my portfolio backend!" });});
 
 
 
@@ -74,6 +56,36 @@ app.post('/api/contact', (req, res) => {
         res.status(200).json({ message: "Message sent successfully!" });
     });
 });
-// app.listen(5000, () => console.log("Backend server running on port 5000")); //this is using on local only
+// MySQL Connection
+const db = mysql.createConnection({
+    // Render ላይ Environment Variables ውስጥ የምታስገባቸው ስሞች ናቸው
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "portfolio-db",
+    port: process.env.DB_PORT || 3306
+});
+
+// Table በራሱ እንዲፈጠር የሚያደርግ ኮድ
+const createTableQuery = `
+CREATE TABLE IF NOT EXISTS messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+`;
+
+db.query(createTableQuery, (err) => {
+    if (err) {
+        console.error("Table መፍጠር አልተቻለም:", err);
+    } else {
+        console.log("የ 'messages' ሰንጠረዥ በራሱ ተፈጥሯል/ዝግጁ ነው!");
+    }
+});
+
+// Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// app.listen(5000, () => console.log("Backend server running on port 5000")); //this is using on local only
