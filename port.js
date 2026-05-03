@@ -114,66 +114,82 @@ if (sections.length) {
   sections.forEach((s) => spy.observe(s));
 }
 
+// --- የ API አድራሻን በራሱ የሚለይ ኮድ ---
+const getBaseURL = () => {
+    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5000'
+        : 'https://my-portfolio-using-backend-node-js.onrender.com';
+};
+
 // Contact form submission
 const contactForm = document.getElementById('contactForm');
 
-contactForm.addEventListener('submit', async (event) => {
-    event.preventDefault(); // This stops the "email app" from opening
+if (contactForm) {
+    contactForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // This stops the "email app" from opening
 
-    const formData = {
-        name: document.getElementById('full-name').value,
-        email: document.getElementById('email-address').value,
-        message: document.getElementById('user-message').value
-    };
+        const formData = {
+            name: document.getElementById('full-name').value,
+            email: document.getElementById('email-address').value,
+            message: document.getElementById('user-message').value
+        };
 
+        try {
+            // ተለዋዋጭ አድራሻን በመጠቀም መረጃ መላክ[cite: 4]
+            const response = await fetch(`${getBaseURL()}/api/contact`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert("Success! Your message was saved to the database.");
+                contactForm.reset(); // Clears the form[cite: 4]
+            } else {
+                alert("Server error: " + result.error);
+            }
+        } catch (error) {
+            console.error("Connection failed:", error);
+            alert("Could not connect to the backend server. Is it running?");
+        }
+    });
+}
+
+// Load projects from database
+async function loadProjects() {
     try {
-        const response = await fetch('https://my-portfolio-using-backend-node-js.onrender.com/api/contact', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
+        // ተለዋዋጭ አድራሻን በመጠቀም ፕሮጀክቶችን መጫን[cite: 4]
+        const response = await fetch(`${getBaseURL()}/api/projects`);
+        const data = await response.json();
+        console.log("Projects from database:", data);
 
-        const result = await response.json();
-
-        if (response.ok) {
-            alert("Success! Your message was saved to the database.");
-            contactForm.reset(); // Clears the form
-        } else {
-            alert("Server error: " + result.error);
+        const projectsGrid = document.querySelector('.projects-grid');
+        if (projectsGrid && Array.isArray(data)) {
+            projectsGrid.innerHTML = data.map((project, idx) => `
+              <article class="project${idx === 0 ? ' large' : idx === 1 ? ' wide' : ''} reveal" data-delay="${idx * 100}">
+                <div class="thumb"></div>
+                <div class="project-body">
+                  <div class="project-num">${String(idx + 1).padStart(2, '0')}</div>
+                  <div class="project-tags">
+                    ${project.tags ? project.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('') : ''}
+                  </div>
+                  <h3>${project.title}</h3>
+                  <p>${project.description}</p>
+                  <div class="project-links">
+                    <a class="link" href="${project.link}" target="_blank">Live Visit</a>
+                  </div>
+                </div>
+              </article>
+            `).join('');
         }
     } catch (error) {
-        console.error("Connection failed:", error);
-        alert("Could not connect to the backend server. Is it running?");
-    }
-});
-
-//backend  node.js express mysql2 cors
-
-async function loadProjects() {
-    const response = await fetch('http://localhost:5000/api/projects');
-    const data = await response.json();
-    console.log("Projects from database:", data);
-    // Render projects in the Projects section
-    const projectsGrid = document.querySelector('.projects-grid');
-    if (projectsGrid && Array.isArray(data)) {
-        projectsGrid.innerHTML = data.map((project, idx) => `
-          <article class="project${idx === 0 ? ' large' : idx === 1 ? ' wide' : ''} reveal" data-delay="${idx * 100}">
-            <div class="thumb"></div>
-            <div class="project-body">
-              <div class="project-num">${String(idx + 1).padStart(2, '0')}</div>
-              <div class="project-tags">
-                ${project.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-              </div>
-              <h3>${project.title}</h3>
-              <p>${project.description}</p>
-              <div class="project-links">
-                <a class="link" href="${project.link}" target="_blank">Live Visit</a>
-              </div>
-            </div>
-          </article>
-        `).join('');
+        console.error("Failed to load projects:", error);
     }
 }
 
+// ፕሮጀክቶቹ ገጹ ሲከፈት እንዲጫኑ ጥሪ ማድረግ
+loadProjects();

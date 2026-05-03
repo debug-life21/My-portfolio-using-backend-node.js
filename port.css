@@ -140,6 +140,7 @@
   }
   .brand-text { 
     background: linear-gradient(to right, #fff, var(--accent));
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
